@@ -183,10 +183,10 @@ int main(void) {
 				DrawRectangle(player2->bar.x,player2->bar.y, 9, player2->bar.height, player1->color);
 
 				//Draw players Scores 
-				DrawText(FormatText("Score Player 1: %i", player1->score), SCREENWIDTH/30, 25, 20, player1->color);
-				DrawText(FormatText("Score Player 2: %i", player2->score), 3*SCREENWIDTH/4, 25, 20, player1->color);
-				DrawText(FormatText("Matches: %i / %i", player1->matchScore, totalMatches), SCREENWIDTH/30, 50, 20, player1->color);
-				DrawText(FormatText("Matches: %i / %i", player2->matchScore, totalMatches), 3*SCREENWIDTH/4, 50, 20, player1->color);
+				DrawText(TextFormat("Score Player 1: %i", player1->score), SCREENWIDTH/30, 25, 20, player1->color);
+				DrawText(TextFormat("Score Player 2: %i", player2->score), 3*SCREENWIDTH/4, 25, 20, player1->color);
+				DrawText(TextFormat("Matches: %i / %i", player1->matchScore, totalMatches), SCREENWIDTH/30, 50, 20, player1->color);
+				DrawText(TextFormat("Matches: %i / %i", player2->matchScore, totalMatches), 3*SCREENWIDTH/4, 50, 20, player1->color);
 
 				// On pause, we draw a blinking message
 				if (pause && ((framesCounter/30)%2)) DrawText("PAUSED", SCREENWIDTH/2 - 70, SCREENHEIGHT/3, 30, GRAY);

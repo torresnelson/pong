@@ -27,7 +27,7 @@
 PROJECT_NAME       ?= Game
 RAYLIB_VERSION     ?= 3.0.0
 RAYLIB_API_VERSION ?= 3
-RAYLIB_PATH        ?= /home/titoreboot/raylib/src/
+RAYLIB_PATH        ?= /home/nelson/repos/raylib/src/
 
 # Define default options
 
@@ -126,7 +126,7 @@ endif
 
 # Define include paths for required headers
 # NOTE: Several external required libraries (stb and others)
- INCLUDE_PATHS = -I/home/titoreboot/Documents/Pong/include -I$(RAYLIB_H_INSTALL_PATH) -isystem. -isystem$(RAYLIB_PATH)/src -isystem$(RAYLIB_PATH)/release/include -isystem$(RAYLIB_PATH)/src/external
+ INCLUDE_PATHS = -I/home/nelson/repos/Pong/include -I$(RAYLIB_H_INSTALL_PATH) -isystem. -isystem$(RAYLIB_PATH)/src -isystem$(RAYLIB_PATH)/release/include -isystem$(RAYLIB_PATH)/src/external
 
 # Define library paths containing required libs.
 LDFLAGS = -L. -L$(RAYLIB_RELEASE_PATH) -L$(RAYLIB_PATH)/src
@@ -161,7 +161,7 @@ endif
 
 # Define all object files required
 GAME = \
-    source \
+    src/Pong \
 
 CURRENT_MAKEFILE = $(lastword $(MAKEFILE_LIST))
 
