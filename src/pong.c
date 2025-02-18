@@ -1,5 +1,5 @@
 #include "raylib.h"
-#include "../include/Pong.h"
+#include "../include/pong.h"
 #include <stdio.h>
 
 Player createPlayer(Color color, int height, int width, Rectangle bar) {

@@ -126,7 +126,7 @@ endif
 
 # Define include paths for required headers
 # NOTE: Several external required libraries (stb and others)
- INCLUDE_PATHS = -I/home/nelson/repos/Pong/include -I$(RAYLIB_H_INSTALL_PATH) -isystem. -isystem$(RAYLIB_PATH)/src -isystem$(RAYLIB_PATH)/release/include -isystem$(RAYLIB_PATH)/src/external
+ INCLUDE_PATHS = -I/home/nelson/repos/pong/include -I$(RAYLIB_H_INSTALL_PATH) -isystem. -isystem$(RAYLIB_PATH)/src -isystem$(RAYLIB_PATH)/release/include -isystem$(RAYLIB_PATH)/src/external
 
 # Define library paths containing required libs.
 LDFLAGS = -L. -L$(RAYLIB_RELEASE_PATH) -L$(RAYLIB_PATH)/src
@@ -161,7 +161,7 @@ endif
 
 # Define all object files required
 GAME = \
-    src/Pong \
+    src/pong \
 
 CURRENT_MAKEFILE = $(lastword $(MAKEFILE_LIST))
 
