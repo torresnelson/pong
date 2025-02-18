@@ -2,7 +2,12 @@
 #include "../include/pong.h"
 #include <stdio.h>
 
-Player createPlayer(Color color, int height, int width, Rectangle bar) {
+Player createPlayer(
+	Color color,
+	int height,
+	int width,
+	Rectangle bar
+) {
 	Player p = (Player)malloc(sizeof(struct sPlayer));
 	p->color = color;
 	p->height = height;
@@ -13,7 +18,13 @@ Player createPlayer(Color color, int height, int width, Rectangle bar) {
 	p->game = 0;
 	return p;
 }
-Ball createBall(Color color, int ratio, Vector2 speed, Vector2 position) {
+
+Ball createBall(
+	Color color,
+	int ratio,
+	Vector2 speed,
+	Vector2 position
+) {
 	Ball b = (Ball)malloc(sizeof(struct sBall));
 	b->color = color;
 	b->ratio = ratio;
@@ -21,7 +32,15 @@ Ball createBall(Color color, int ratio, Vector2 speed, Vector2 position) {
 	b->position = position;
 	return b;
 }
-Field createField(Color colorBackground, Color colorLine, int lineThickness, int top, int bottom, int leftGoal, int rightGoal) {
+
+Field createField(
+	Color colorBackground,
+	Color colorLine,
+	int lineThickness,
+	int top, int bottom,
+	int leftGoal,
+	int rightGoal
+) {
 	Field f = (Field)malloc(sizeof(struct sField));
 	f->colorBackground = colorBackground;
 	f->colorLine = colorLine;
@@ -32,11 +51,16 @@ Field createField(Color colorBackground, Color colorLine, int lineThickness, int
 	f->rightGoal = rightGoal;
 	return f;
 }
-void resetGame(Player player1, Player player2) {
+
+void resetGame(
+	Player player1,
+	Player player2
+) {
 	menu = 1;
 	game = 0;
 	halt = 0;
 	pause = 0;
+
 	player1->score = 0;
 	player2->score = 0;
 	player1->matchScore = 0;
@@ -44,6 +68,7 @@ void resetGame(Player player1, Player player2) {
 	player1->game = 0;
 	player2->game = 0;
 }
+
 //manage the scores of matches
 Ball ballReset(Ball ball) {
 	if ((ball->position.x > SCREENWIDTH + 2*RATIO )) { 
@@ -59,7 +84,13 @@ Ball ballReset(Ball ball) {
 	}
 	return ball;
 }
-void scoreManager(Player player1, Player player2, int maxScore, int totalMatches) {
+
+void scoreManager(
+	Player player1,
+	Player player2,
+	int maxScore,
+	int totalMatches
+) {
 	if (player1->matchScore >= totalMatches) player1->game = 1;
 	else if (player2->matchScore >= totalMatches) player2->game = 1;
 	if (player1->score >= maxScore) {
@@ -74,12 +105,18 @@ void scoreManager(Player player1, Player player2, int maxScore, int totalMatches
 		player2->score = 0;
 	}
 }
+
 // Movement of the ball
 void ballMovement(Ball ball) {
 	ball->position.x += ball->speed.x;
 	ball->position.y += ball->speed.y;
 }
-void eyeBall(Player player1, Player player2, Ball ball) {
+
+void eyeBall(
+	Player player1,
+	Player player2,
+	Ball ball
+) {
 	if ((ball->position.x > SCREENWIDTH + 2*RATIO )) { 
 		ball = ballReset(ball);
 		player1->score += 1;
@@ -88,7 +125,13 @@ void eyeBall(Player player1, Player player2, Ball ball) {
 		player2->score += 1;
 	}
 }	
-void collisions(Player player1, Player player2, Ball ball, Field field) {
+
+void collisions(
+	Player player1,
+	Player player2,
+	Ball ball,
+	Field field
+) {
 	// Check roof and floor collisions for bouncing
 	int randomPitch = GetRandomValue(4,7);
 	float randomPitchReal = randomPitch*.1 + 0.5;
@@ -109,35 +152,44 @@ void collisions(Player player1, Player player2, Ball ball, Field field) {
 	if (player2->bar.y <=  field->top) player2->bar.y *= field->top;
 	else if (player2->bar.y >= field->bottom) player2->bar.y = field->bottom;		
 }
-void referee(Player player1, Player player2, Ball ball, Field field, int maxScore, int totalMatches) {	
+
+void referee(
+	Player player1,
+	Player player2,
+	Ball ball,
+	Field field,
+	int maxScore,
+	int totalMatches
+) {	
 	eyeBall(player1, player2, ball);
 	scoreManager(player1, player2, maxScore, totalMatches);
 	collisions(player1, player2, ball, field);
 	ballMovement(ball);
-}   
-int main(void) {	
+}
+
+int main(void) {
 	InitWindow(SCREENWIDTH, SCREENHEIGHT, "PONG version: beta 0.6.1 ");
-	
+
 	//Field
 	Field field = createField(colorBackground, lineColor, lineThickness, top, bottom, leftGoal, rightGoal);
-	
+
 	//Bars
 	Player player1 = createPlayer(WHITE, PLAYERHEIGHT, PLAYERWIDTH, rectangleLeft);
 	Player player2 = createPlayer(BLUE, PLAYERHEIGHT, PLAYERWIDTH, rectangleRight);
-	
+
 	//Ball``
 	Ball ball = createBall(ballColor, RATIO, ballSpeed, ballPosition);
-	
+
 	// Set our game to run at 60 frames-per-second
-	SetTargetFPS(60);              
-	
+	SetTargetFPS(60);
+
 	// Main game loop
 	// Detect window close button or ESC key
 	while (!WindowShouldClose()) {
 
 		// Update
 		//pause and reset match
-		if (IsKeyPressed(KEY_SPACE)) {			
+		if (IsKeyPressed(KEY_SPACE)) {
 			if (!pause && !halt && !game && !menu) pause = !pause;
 			else if (IsKeyPressed(KEY_SPACE) && !halt && !game && !menu) pause = !pause;
 			if (!pause && halt && !game && !menu) halt = !halt;
@@ -147,7 +199,7 @@ int main(void) {
 		if (IsKeyPressed(KEY_ENTER) && (player1->game || player2->game)) resetGame(player1, player2);
 		if (IsKeyPressed(KEY_ENTER) && !pause && !halt && !game && menu && !(player1->game || player2->game)) menu = !menu;
 
-		collision = false;    
+		collision = false;
 
 		if (!pause && !halt && !game && !menu) {
 
@@ -170,58 +222,59 @@ int main(void) {
 		else framesCounter++;
 
 		BeginDrawing();
-			if (!game && !menu) {
-				//Draw the Field 
-				ClearBackground(field->colorBackground);
-				DrawLineEx(startPos, endPos, field->lineThickness, field->colorLine);
-				
-				//Draw the Ball
-				DrawCircleV(ball->position, ball->ratio, ball->color);
-				
-				//Draw the Players
-				DrawRectangle(0,player1->bar.y, 9, player1->bar.height, player1->color);
-				DrawRectangle(player2->bar.x,player2->bar.y, 9, player2->bar.height, player1->color);
+		if (!game && !menu) {
+			//Draw the Field 
+			ClearBackground(field->colorBackground);
+			DrawLineEx(startPos, endPos, field->lineThickness, field->colorLine);
+			
+			//Draw the Ball
+			DrawCircleV(ball->position, ball->ratio, ball->color);
 
-				//Draw players Scores 
-				DrawText(TextFormat("Score Player 1: %i", player1->score), SCREENWIDTH/30, 25, 20, player1->color);
-				DrawText(TextFormat("Score Player 2: %i", player2->score), 3*SCREENWIDTH/4, 25, 20, player1->color);
-				DrawText(TextFormat("Matches: %i / %i", player1->matchScore, totalMatches), SCREENWIDTH/30, 50, 20, player1->color);
-				DrawText(TextFormat("Matches: %i / %i", player2->matchScore, totalMatches), 3*SCREENWIDTH/4, 50, 20, player1->color);
+			//Draw the Players
+			DrawRectangle(0,player1->bar.y, 9, player1->bar.height, player1->color);
+			DrawRectangle(player2->bar.x,player2->bar.y, 9, player2->bar.height, player1->color);
 
-				// On pause, we draw a blinking message
-				if (pause && ((framesCounter/30)%2)) DrawText("PAUSED", SCREENWIDTH/2 - 70, SCREENHEIGHT/3, 30, GRAY);
+			//Draw players Scores 
+			DrawText(TextFormat("Score Player 1: %i", player1->score), SCREENWIDTH/30, 25, 20, player1->color);
+			DrawText(TextFormat("Score Player 2: %i", player2->score), 3*SCREENWIDTH/4, 25, 20, player1->color);
+			DrawText(TextFormat("Matches: %i / %i", player1->matchScore, totalMatches), SCREENWIDTH/30, 50, 20, player1->color);
+			DrawText(TextFormat("Matches: %i / %i", player2->matchScore, totalMatches), 3*SCREENWIDTH/4, 50, 20, player1->color);
 
-				// On halt, we draw a blinking message to continnue
-				if (halt && !(player1->game || player2->game) && ((framesCounter/30)%2)) DrawText("Press SPACE to CONTINUE.", SCREENWIDTH/2 - 260, SCREENHEIGHT/2, 30, GREEN);
-			}
+			// On pause, we draw a blinking message
+			if (pause && ((framesCounter/30)%2)) DrawText("PAUSED", SCREENWIDTH/2 - 70, SCREENHEIGHT/3, 30, GRAY);
 
-			//Draw the front menu 
-			if (menu && !(player1->game || player2->game)) {
-				ClearBackground(field->colorBackground);
-				DrawText("Pong ", SCREENWIDTH/2 - 210, SCREENHEIGHT/3, 180, RED);
-				DrawText("Pong ", SCREENWIDTH/2 - 213, SCREENHEIGHT/3, 178, BLUE);
-				DrawText("titoreboot inc.", SCREENWIDTH/2 - 25, 3*SCREENHEIGHT/4, 10, WHITE);
-				DrawText("press ENTER or M to START.", SCREENWIDTH/2 - 100, 5*SCREENHEIGHT/6, 15, WHITE);
-				DrawText("press SPACE to PAUSE.", SCREENWIDTH/2 - 77, 7*SCREENHEIGHT/8, 15, WHITE);
-			}//Draw victory player 1
-			else if (halt && !menu && player1->game) {	
-				ClearBackground(field->colorBackground);
-				DrawText("Player 1 WINS", SCREENWIDTH/3 - 200, SCREENHEIGHT/2, 30, BLUE);
-				DrawText("Press ENTER for REMATCH   Press ESC to EXIT", SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
-				DrawText("Press M to go MAIN MENU", SCREENWIDTH/2 - 305, 6*SCREENHEIGHT/7, 20, WHITE);
-			}//Draw victory player 2
-			else if (halt && !menu && player2->game) {
-				ClearBackground(field->colorBackground);
-				DrawText("Press ENTER for REMATCH   Press ESC to EXIT", SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
-				DrawText("Player 2 WINS", SCREENWIDTH/2 + 100, SCREENHEIGHT/2, 30, RED);
-				DrawText("Press M to go MAIN MENU", SCREENWIDTH/2 - 305, 6*SCREENHEIGHT/7, 20, WHITE);
-			}
+			// On halt, we draw a blinking message to continnue
+			if (halt && !(player1->game || player2->game) && ((framesCounter/30)%2)) DrawText("Press SPACE to CONTINUE.", SCREENWIDTH/2 - 260, SCREENHEIGHT/2, 30, GREEN);
+		}
 
-			//FPS
-			DrawFPS(10, 10);
+		//Draw the front menu 
+		if (menu && !(player1->game || player2->game)) {
+			ClearBackground(field->colorBackground);
+			DrawText("Pong ", SCREENWIDTH/2 - 210, SCREENHEIGHT/3, 180, RED);
+			DrawText("Pong ", SCREENWIDTH/2 - 213, SCREENHEIGHT/3, 178, BLUE);
+			DrawText("titoreboot inc.", SCREENWIDTH/2 - 25, 3*SCREENHEIGHT/4, 10, WHITE);
+			DrawText("press ENTER or M to START.", SCREENWIDTH/2 - 100, 5*SCREENHEIGHT/6, 15, WHITE);
+			DrawText("press SPACE to PAUSE.", SCREENWIDTH/2 - 77, 7*SCREENHEIGHT/8, 15, WHITE);
+		}//Draw victory player 1
+		else if (halt && !menu && player1->game) {
+			ClearBackground(field->colorBackground);
+			DrawText("Player 1 WINS", SCREENWIDTH/3 - 200, SCREENHEIGHT/2, 30, BLUE);
+			DrawText("Press ENTER for REMATCH   Press ESC to EXIT", SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
+			DrawText("Press M to go MAIN MENU", SCREENWIDTH/2 - 305, 6*SCREENHEIGHT/7, 20, WHITE);
+		}//Draw victory player 2
+		else if (halt && !menu && player2->game) {
+			ClearBackground(field->colorBackground);
+			DrawText("Press ENTER for REMATCH   Press ESC to EXIT", SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
+			DrawText("Player 2 WINS", SCREENWIDTH/2 + 100, SCREENHEIGHT/2, 30, RED);
+			DrawText("Press M to go MAIN MENU", SCREENWIDTH/2 - 305, 6*SCREENHEIGHT/7, 20, WHITE);
+		}
+
+		//FPS
+		DrawFPS(10, 10);
 
 		EndDrawing();
 	}
+
 	CloseWindow();
 	return 0;
 }
