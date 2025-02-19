@@ -7,7 +7,7 @@ Clon of a classic game using RayLib
 Make sure you have `gnumake` and `raylib` install in your system, if not,
 here's a `nix-shell` command for it:
 
-    nix-shell -p gnumake raylib
+    nix-shell
 
 For other linux installation install `gnumake` and `raylib` in your
 system using your prefer package manager, e.g:
