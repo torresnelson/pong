@@ -1,3 +1,4 @@
 src/pong
 *.o
+tests/test_game
 .claude/worktrees/
