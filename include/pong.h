@@ -2,7 +2,7 @@
  #define _PONG_H_ 
  
 	#include "raylib.h"
-	#include "stdlib.h"
+	#include <stdlib.h>
 
 	#define SCREENWIDTH 800
 	#define SCREENHEIGHT 450
@@ -39,35 +39,32 @@
 	} * Field;
 
 	//Players scores
-	int maxScore = 10;
-	int totalMatches = 3;
+	extern int maxScore;
+	extern int totalMatches;
 
 	//Size of the bar
-	Rectangle rectangleLeft = { 0, SCREENHEIGHT/2, PLAYERWIDTH, PLAYERHEIGHT };
-	Rectangle rectangleRight = { SCREENWIDTH - PLAYERWIDTH, SCREENHEIGHT/2, PLAYERWIDTH, PLAYERHEIGHT };
+	extern Rectangle rectangleLeft;
+	extern Rectangle rectangleRight;
 
 	//Ball
-	Color ballColor = RED;
-	Vector2 ballPosition = { SCREENWIDTH/2, SCREENHEIGHT/2 };
-	Vector2 maxSpeed = { 15.0f, 8.0f };
-	Vector2 ballSpeed = { 7.2f, 3.25f };
+	extern Color ballColor;
+	extern Vector2 ballPosition;
+	extern Vector2 maxSpeed;
+	extern Vector2 ballSpeed;
 
 	//Field
-	Vector2 startPos = { SCREENWIDTH/2, SCREENHEIGHT }; 
-	Vector2 endPos = { SCREENWIDTH/2, 0 };
-	Color colorBackground = BLACK;
-	Color lineColor = WHITE;
-	int leftGoal = - RATIO;
-	int rightGoal = SCREENWIDTH + RATIO;    
-	int lineThickness = 5; 
-	int top = 0;
-	int bottom = SCREENHEIGHT - PLAYERHEIGHT;
+	extern Vector2 startPos;
+	extern Vector2 endPos;
+	extern Color colorBackground;
+	extern Color lineColor;
+	extern int leftGoal;
+	extern int rightGoal;
+	extern int lineThickness;
+	extern int top;
+	extern int bottom;
 
 	//States
 	typedef enum { MENU, PLAYING, PAUSED, MATCH_OVER, GAME_OVER } GameState;
-
-	//Frezze
-	int framesCounter = 0;
 
 	//Functions
 	Player createPlayer(Color color, int height, int width, Rectangle bar);

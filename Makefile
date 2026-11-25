@@ -21,7 +21,7 @@
 #
 #**************************************************************************************************
 
-.PHONY: all clean
+.PHONY: all game test clean
 
 # Define required raylib variables
 PROJECT_NAME       ?= Game
@@ -160,8 +160,9 @@ ifeq ($(USE_EXTERNAL_GLFW),TRUE)
 endif
 
 # Define all object files required
-GAME = \
-    src/pong \
+GAME = src/pong
+GAME_SRC = src/main.c src/game.c
+TEST = tests/test_game
 
 CURRENT_MAKEFILE = $(lastword $(MAKEFILE_LIST))
 
@@ -171,18 +172,21 @@ all: $(GAME)
 # target
 game: $(GAME)
 
-# Generic compilation pattern
-# NOTE: Examples must be ready for Android compilation!
-%: %.c
-ifeq ($(PLATFORM),PLATFORM_DESKTOP)
-	$(CC) -o $@$(EXT) $< $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM)
-endif
+# Unit tests for the game logic
+test: $(TEST)
+	./$(TEST)
+
+$(GAME): $(GAME_SRC) include/pong.h
+	$(CC) -o $@$(EXT) $(GAME_SRC) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM)
+
+$(TEST): tests/test_game.c src/game.c include/pong.h
+	$(CC) -o $@ tests/test_game.c src/game.c $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM)
 
 # Clean everything
 clean:
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),LINUX)
-		rm -fv $(GAME) src/*.o
+		rm -fv $(GAME) $(TEST) src/*.o
     endif
 endif
 	@echo Cleaning done.
