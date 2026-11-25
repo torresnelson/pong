@@ -18,7 +18,6 @@
 		Rectangle hitBar;
 		int score;
 		int matchScore;
-		bool game;
 	} * Player;
 
 	//Ball
@@ -65,10 +64,7 @@
 	int bottom = SCREENHEIGHT - PLAYERHEIGHT;
 
 	//States
-	bool pause = 0;
-	bool halt = 0;
-	bool game = 0;
-	bool menu = 1;
+	typedef enum { MENU, PLAYING, PAUSED, MATCH_OVER, GAME_OVER } GameState;
 
 	//Frezze
 	int framesCounter = 0;
@@ -79,8 +75,8 @@
 	Field createField(Color colorBackground, Color colorLine, int lineThickness, int top, int bottom, int leftGoal, int rightGoal);
 	Ball ballReset(Ball ball);
 	void eyeBall(Player player1, Player player2, Ball ball);
-	void scoreManager(Player player1, Player player2, int maxScore, int totalMatches);
-	void referee(Player player1, Player player2, Ball ball, Field field, int maxScore, int totalMatches);
+	GameState scoreManager(Player player1, Player player2, int maxScore, int totalMatches);
+	GameState referee(Player player1, Player player2, Ball ball, Field field, int maxScore, int totalMatches);
 	void resetGame(Player player1, Player player2);
 	void collisions(Player player1, Player player2, Ball ball, Field field);
 	void ballMovement(Ball ball);
