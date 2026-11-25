@@ -1,30 +1,33 @@
 # pong
-Clon of a classic game using RayLib
+Clone of the classic game using raylib.
 
 
 ### How to compile?
 
-Make sure you have `gnumake` and `raylib` install in your system, if not,
-here's a `nix-shell` command for it:
+You need a C compiler, `make`, `pkg-config` and `raylib`. With Nix, enter
+a shell that provides them:
 
     nix-shell
 
-For other linux installation install `gnumake` and `raylib` in your
-system using your prefer package manager, e.g:
+On Debian/Ubuntu, install them with:
 
-    sudo apt install gnumake raylib
+    sudo apt install build-essential pkg-config libraylib-dev
 
-Once installed the libs, run this command to compile:
+Then compile:
 
-    make game
+    make
 
 ### How to play it?
 
 Run the game:
 
-    ./src/pong
+    make run
 
-The keys bindings:
+or run the binary directly:
+
+    ./build/pong
+
+The key bindings:
 
     - Player one: (w and s)
 
@@ -32,8 +35,16 @@ The keys bindings:
 
     - Start game: (Enter or m)
 
-    - Pause: (Space Tab)
+    - Pause / continue: (Space)
 
-    - Menu: (when pause press m)
+    - Menu: (when paused or after a win, press m)
+
+    - Rematch: (after a win, press Enter)
 
     - Exit: (Esc)
+
+### Tests
+
+Run the game logic unit tests (no window needed):
+
+    make test

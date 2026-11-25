@@ -1,4 +1,3 @@
-src/pong
+build/
 *.o
-tests/test_game
 .claude/worktrees/
