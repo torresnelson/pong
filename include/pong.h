@@ -44,8 +44,8 @@
 	int totalMatches = 3;
 
 	//Size of the bar
-	Rectangle rectangleLeft = { 9, SCREENHEIGHT/2, PLAYERWIDTH - (PLAYERWIDTH - 1), PLAYERHEIGHT };
-	Rectangle rectangleRight = { SCREENWIDTH - 9, SCREENHEIGHT/2, PLAYERWIDTH - (PLAYERWIDTH - 1), PLAYERHEIGHT };
+	Rectangle rectangleLeft = { 0, SCREENHEIGHT/2, PLAYERWIDTH, PLAYERHEIGHT };
+	Rectangle rectangleRight = { SCREENWIDTH - PLAYERWIDTH, SCREENHEIGHT/2, PLAYERWIDTH, PLAYERHEIGHT };
 
 	//Ball
 	Color ballColor = RED;
@@ -65,7 +65,6 @@
 	int bottom = SCREENHEIGHT - PLAYERHEIGHT;
 
 	//States
-	bool collision = 0;
 	bool pause = 0;
 	bool halt = 0;
 	bool game = 0;
@@ -85,5 +84,7 @@
 	void resetGame(Player player1, Player player2);
 	void collisions(Player player1, Player player2, Ball ball, Field field);
 	void ballMovement(Ball ball);
+	Vector2 clampSpeed(Vector2 speed, Vector2 max);
+	void paddleBounce(Ball ball);
 
 #endif
