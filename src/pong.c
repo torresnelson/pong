@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "../include/pong.h"
+#include <math.h>
 
 Player createPlayer(
 	Color color,
@@ -105,6 +106,21 @@ void scoreManager(
 	}
 }
 
+// Keep each speed component within the given maximum magnitude
+Vector2 clampSpeed(Vector2 speed, Vector2 max) {
+	if (fabsf(speed.x) > max.x) speed.x = copysignf(max.x, speed.x);
+	if (fabsf(speed.y) > max.y) speed.y = copysignf(max.y, speed.y);
+	return speed;
+}
+
+// Send the ball back with a random pitch, capped at maxSpeed
+void paddleBounce(Ball ball) {
+	float randomPitchReal = GetRandomValue(4, 7)*.1f + 0.5f;
+	ball->speed.x *= -randomPitchReal;
+	ball->speed.y *= randomPitchReal;
+	ball->speed = clampSpeed(ball->speed, maxSpeed);
+}
+
 // Movement of the ball
 void ballMovement(Ball ball) {
 	ball->position.x += ball->speed.x;
@@ -131,15 +147,28 @@ void collisions(
 	Ball ball,
 	Field field
 ) {
-	// Check roof and floor collisions for bouncing
-	int randomPitch = GetRandomValue(4,7);
-	float randomPitchReal = randomPitch*.1 + 0.5;
-	if ((ball->position.y >= (SCREENHEIGHT - ball->ratio)) || (ball->position.y <= ball->ratio)) ball->speed.y *= -1.0f;
-	if (CheckCollisionCircleRec(ball->position, RATIO, player1->bar)) collision = 1;
-	if (CheckCollisionCircleRec(ball->position, RATIO, player2->bar)) collision = 1;
-	//Check collisions 
-	if (collision) ball->speed.x *= (-1.0f*randomPitchReal);
-	if (collision) ball->speed.y *= (1.0f*randomPitchReal);
+	// Bounce off roof and floor, keeping the ball inside the field
+	if (ball->position.y >= SCREENHEIGHT - ball->ratio) {
+		ball->position.y = SCREENHEIGHT - ball->ratio;
+		ball->speed.y = -fabsf(ball->speed.y);
+	} else if (ball->position.y <= ball->ratio) {
+		ball->position.y = ball->ratio;
+		ball->speed.y = fabsf(ball->speed.y);
+	}
+
+	// Bounce off a paddle only while moving towards it and still in front of it,
+	// then push the ball out so it cannot bounce again on the next frame
+	if (ball->speed.x < 0
+		&& ball->position.x > player1->bar.x + player1->bar.width/2
+		&& CheckCollisionCircleRec(ball->position, ball->ratio, player1->bar)) {
+		ball->position.x = player1->bar.x + player1->bar.width + ball->ratio;
+		paddleBounce(ball);
+	} else if (ball->speed.x > 0
+		&& ball->position.x < player2->bar.x + player2->bar.width/2
+		&& CheckCollisionCircleRec(ball->position, ball->ratio, player2->bar)) {
+		ball->position.x = player2->bar.x - ball->ratio;
+		paddleBounce(ball);
+	}
 
 	// Checks collisions between BARS, LIMIT SUP and INF
 	if (player1->bar.y <=  field->top) player1->bar.y = field->top;
@@ -194,8 +223,6 @@ int main(void) {
 		if (IsKeyPressed(KEY_ENTER) && (player1->game || player2->game)) resetGame(player1, player2);
 		if (IsKeyPressed(KEY_ENTER) && !pause && !halt && !game && menu && !(player1->game || player2->game)) menu = !menu;
 
-		collision = false;
-
 		if (!pause && !halt && !game && !menu) {
 
 			// Movement player 1
@@ -226,8 +253,8 @@ int main(void) {
 			DrawCircleV(ball->position, ball->ratio, ball->color);
 
 			//Draw the Players
-			DrawRectangle(0,player1->bar.y, 9, player1->bar.height, player1->color);
-			DrawRectangle(player2->bar.x,player2->bar.y, 9, player2->bar.height, player2->color);
+			DrawRectangleRec(player1->bar, player1->color);
+			DrawRectangleRec(player2->bar, player2->color);
 
 			//Draw players Scores 
 			DrawText(TextFormat("Score Player 1: %i", player1->score), SCREENWIDTH/30, 25, 20, player1->color);
