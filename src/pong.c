@@ -1,6 +1,5 @@
 #include "raylib.h"
 #include "../include/pong.h"
-#include <stdio.h>
 
 Player createPlayer(
 	Color color,
@@ -141,15 +140,11 @@ void collisions(
 	//Check collisions 
 	if (collision) ball->speed.x *= (-1.0f*randomPitchReal);
 	if (collision) ball->speed.y *= (1.0f*randomPitchReal);
-	printf("\n\n\n\n");
-	printf("-----------------------\n");
-	printf("ball->speed.x:  %.2f\n", ball->speed.x);
-	printf("randomPitchReal:  %.2f\n", randomPitchReal);
 
 	// Checks collisions between BARS, LIMIT SUP and INF
-	if (player1->bar.y <=  field->top) player1->bar.y *= field->top;
+	if (player1->bar.y <=  field->top) player1->bar.y = field->top;
 	else if (player1->bar.y >= field->bottom) player1->bar.y = field->bottom;
-	if (player2->bar.y <=  field->top) player2->bar.y *= field->top;
+	if (player2->bar.y <=  field->top) player2->bar.y = field->top;
 	else if (player2->bar.y >= field->bottom) player2->bar.y = field->bottom;		
 }
 
@@ -232,13 +227,13 @@ int main(void) {
 
 			//Draw the Players
 			DrawRectangle(0,player1->bar.y, 9, player1->bar.height, player1->color);
-			DrawRectangle(player2->bar.x,player2->bar.y, 9, player2->bar.height, player1->color);
+			DrawRectangle(player2->bar.x,player2->bar.y, 9, player2->bar.height, player2->color);
 
 			//Draw players Scores 
 			DrawText(TextFormat("Score Player 1: %i", player1->score), SCREENWIDTH/30, 25, 20, player1->color);
-			DrawText(TextFormat("Score Player 2: %i", player2->score), 3*SCREENWIDTH/4, 25, 20, player1->color);
+			DrawText(TextFormat("Score Player 2: %i", player2->score), 3*SCREENWIDTH/4, 25, 20, player2->color);
 			DrawText(TextFormat("Matches: %i / %i", player1->matchScore, totalMatches), SCREENWIDTH/30, 50, 20, player1->color);
-			DrawText(TextFormat("Matches: %i / %i", player2->matchScore, totalMatches), 3*SCREENWIDTH/4, 50, 20, player1->color);
+			DrawText(TextFormat("Matches: %i / %i", player2->matchScore, totalMatches), 3*SCREENWIDTH/4, 50, 20, player2->color);
 
 			// On pause, we draw a blinking message
 			if (pause && ((framesCounter/30)%2)) DrawText("PAUSED", SCREENWIDTH/2 - 70, SCREENHEIGHT/3, 30, GRAY);
@@ -258,14 +253,14 @@ int main(void) {
 		}//Draw victory player 1
 		else if (halt && !menu && player1->game) {
 			ClearBackground(field->colorBackground);
-			DrawText("Player 1 WINS", SCREENWIDTH/3 - 200, SCREENHEIGHT/2, 30, BLUE);
+			DrawText("Player 1 WINS", SCREENWIDTH/3 - 200, SCREENHEIGHT/2, 30, player1->color);
 			DrawText("Press ENTER for REMATCH   Press ESC to EXIT", SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
 			DrawText("Press M to go MAIN MENU", SCREENWIDTH/2 - 305, 6*SCREENHEIGHT/7, 20, WHITE);
 		}//Draw victory player 2
 		else if (halt && !menu && player2->game) {
 			ClearBackground(field->colorBackground);
 			DrawText("Press ENTER for REMATCH   Press ESC to EXIT", SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
-			DrawText("Player 2 WINS", SCREENWIDTH/2 + 100, SCREENHEIGHT/2, 30, RED);
+			DrawText("Player 2 WINS", SCREENWIDTH/2 + 100, SCREENHEIGHT/2, 30, player2->color);
 			DrawText("Press M to go MAIN MENU", SCREENWIDTH/2 - 305, 6*SCREENHEIGHT/7, 20, WHITE);
 		}
 

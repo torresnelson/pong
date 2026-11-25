@@ -182,8 +182,7 @@ endif
 clean:
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),LINUX)
-		find . -type f -executable -delete
-		rm -fv *.o
+		rm -fv $(GAME) src/*.o
     endif
 endif
 	@echo Cleaning done.
