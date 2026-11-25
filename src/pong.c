@@ -15,7 +15,6 @@ Player createPlayer(
 	p->bar = bar;
 	p->score = 0;
 	p->matchScore = 0;
-	p->game = 0;
 	return p;
 }
 
@@ -56,17 +55,10 @@ void resetGame(
 	Player player1,
 	Player player2
 ) {
-	menu = 1;
-	game = 0;
-	halt = 0;
-	pause = 0;
-
 	player1->score = 0;
 	player2->score = 0;
 	player1->matchScore = 0;
 	player2->matchScore = 0;
-	player1->game = 0;
-	player2->game = 0;
 }
 
 //manage the scores of matches
@@ -85,25 +77,22 @@ Ball ballReset(Ball ball) {
 	return ball;
 }
 
-void scoreManager(
+// Award a match to whoever reached maxScore and return the resulting state
+GameState scoreManager(
 	Player player1,
 	Player player2,
 	int maxScore,
 	int totalMatches
 ) {
-	if (player1->matchScore >= totalMatches) player1->game = 1;
-	else if (player2->matchScore >= totalMatches) player2->game = 1;
-	if (player1->score >= maxScore) {
-		player1->matchScore += 1;
-		halt = 1;
-		player1->score = 0;
-		player2->score = 0;
-	} else if (player2->score >= maxScore) {
-		player2->matchScore += 1;
-		halt = 1;
-		player1->score = 0;
-		player2->score = 0;
-	}
+	Player winner = NULL;
+	if (player1->score >= maxScore) winner = player1;
+	else if (player2->score >= maxScore) winner = player2;
+	if (winner == NULL) return PLAYING;
+
+	winner->matchScore += 1;
+	player1->score = 0;
+	player2->score = 0;
+	return winner->matchScore >= totalMatches ? GAME_OVER : MATCH_OVER;
 }
 
 // Keep each speed component within the given maximum magnitude
@@ -177,7 +166,7 @@ void collisions(
 	else if (player2->bar.y >= field->bottom) player2->bar.y = field->bottom;		
 }
 
-void referee(
+GameState referee(
 	Player player1,
 	Player player2,
 	Ball ball,
@@ -186,9 +175,10 @@ void referee(
 	int totalMatches
 ) {	
 	eyeBall(player1, player2, ball);
-	scoreManager(player1, player2, maxScore, totalMatches);
+	GameState state = scoreManager(player1, player2, maxScore, totalMatches);
 	collisions(player1, player2, ball, field);
 	ballMovement(ball);
+	return state;
 }
 
 int main(void) {
@@ -209,44 +199,57 @@ int main(void) {
 
 	// Main game loop
 	// Detect window close button or ESC key
+	GameState state = MENU;
 	while (!WindowShouldClose()) {
+		framesCounter++;
 
 		// Update
-		//pause and reset match
-		if (IsKeyPressed(KEY_SPACE)) {
-			if (!pause && !halt && !game && !menu) pause = !pause;
-			else if (IsKeyPressed(KEY_SPACE) && !halt && !game && !menu) pause = !pause;
-			if (!pause && halt && !game && !menu) halt = !halt;
-		}
-
-		// When game is finish go to main menu
-		if (IsKeyPressed(KEY_ENTER) && (player1->game || player2->game)) resetGame(player1, player2);
-		if (IsKeyPressed(KEY_ENTER) && !pause && !halt && !game && menu && !(player1->game || player2->game)) menu = !menu;
-
-		if (!pause && !halt && !game && !menu) {
+		switch (state) {
+		case MENU:
+			if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_M)) state = PLAYING;
+			break;
+		case PLAYING:
+			if (IsKeyPressed(KEY_SPACE)) {
+				state = PAUSED;
+				break;
+			}
 
 			// Movement player 1
-			if (IsKeyDown(KEY_W)  && !pause) player1->bar.y -= 15.0f;
-			else if (IsKeyDown(KEY_S) && !pause) player1->bar.y += 15.0f;
+			if (IsKeyDown(KEY_W)) player1->bar.y -= 15.0f;
+			else if (IsKeyDown(KEY_S)) player1->bar.y += 15.0f;
 
 			// Movement player 2
-			if (IsKeyDown(KEY_UP) && !pause) player2->bar.y -= 15.0f;
-			else if (IsKeyDown(KEY_DOWN) && !pause) player2->bar.y += 15.0f;
+			if (IsKeyDown(KEY_UP)) player2->bar.y -= 15.0f;
+			else if (IsKeyDown(KEY_DOWN)) player2->bar.y += 15.0f;
 
 			// Check when scores and reset the match
-			if (!game && !menu) referee(player1, player2, ball, field, maxScore, totalMatches);
-
-		// Go to menu
-		} else if (IsKeyPressed(KEY_M) && !pause && !halt && !game && menu && !(player1->game || player2->game)) menu = !menu;
-		else if (IsKeyPressed(KEY_M) && halt && (player1->game || player2->game)) resetGame(player1, player2);
-		else if (IsKeyPressed(KEY_M) && pause && !menu && !halt && !game) resetGame(player1, player2);
-		// Draw +1 frame
-		else framesCounter++;
+			state = referee(player1, player2, ball, field, maxScore, totalMatches);
+			break;
+		case PAUSED:
+			if (IsKeyPressed(KEY_SPACE)) state = PLAYING;
+			else if (IsKeyPressed(KEY_M)) {
+				resetGame(player1, player2);
+				state = MENU;
+			}
+			break;
+		case MATCH_OVER:
+			if (IsKeyPressed(KEY_SPACE)) state = PLAYING;
+			break;
+		case GAME_OVER:
+			if (IsKeyPressed(KEY_ENTER)) {
+				resetGame(player1, player2);
+				state = PLAYING;
+			} else if (IsKeyPressed(KEY_M)) {
+				resetGame(player1, player2);
+				state = MENU;
+			}
+			break;
+		}
 
 		BeginDrawing();
-		if (!game && !menu) {
-			//Draw the Field 
-			ClearBackground(field->colorBackground);
+		ClearBackground(field->colorBackground);
+		if (state == PLAYING || state == PAUSED || state == MATCH_OVER) {
+			//Draw the Field
 			DrawLineEx(startPos, endPos, field->lineThickness, field->colorLine);
 			
 			//Draw the Ball
@@ -263,29 +266,26 @@ int main(void) {
 			DrawText(TextFormat("Matches: %i / %i", player2->matchScore, totalMatches), 3*SCREENWIDTH/4, 50, 20, player2->color);
 
 			// On pause, we draw a blinking message
-			if (pause && ((framesCounter/30)%2)) DrawText("PAUSED", SCREENWIDTH/2 - 70, SCREENHEIGHT/3, 30, GRAY);
+			if (state == PAUSED && ((framesCounter/30)%2)) DrawText("PAUSED", SCREENWIDTH/2 - 70, SCREENHEIGHT/3, 30, GRAY);
 
-			// On halt, we draw a blinking message to continnue
-			if (halt && !(player1->game || player2->game) && ((framesCounter/30)%2)) DrawText("Press SPACE to CONTINUE.", SCREENWIDTH/2 - 260, SCREENHEIGHT/2, 30, GREEN);
+			// Between matches, we draw a blinking message to continue
+			if (state == MATCH_OVER && ((framesCounter/30)%2)) DrawText("Press SPACE to CONTINUE.", SCREENWIDTH/2 - 260, SCREENHEIGHT/2, 30, GREEN);
 		}
 
-		//Draw the front menu 
-		if (menu && !(player1->game || player2->game)) {
-			ClearBackground(field->colorBackground);
+		//Draw the front menu
+		if (state == MENU) {
 			DrawText("Pong ", SCREENWIDTH/2 - 210, SCREENHEIGHT/3, 180, RED);
 			DrawText("Pong ", SCREENWIDTH/2 - 213, SCREENHEIGHT/3, 178, BLUE);
 			DrawText("titoreboot inc.", SCREENWIDTH/2 - 25, 3*SCREENHEIGHT/4, 10, WHITE);
 			DrawText("press ENTER or M to START.", SCREENWIDTH/2 - 100, 5*SCREENHEIGHT/6, 15, WHITE);
 			DrawText("press SPACE to PAUSE.", SCREENWIDTH/2 - 77, 7*SCREENHEIGHT/8, 15, WHITE);
 		}//Draw victory player 1
-		else if (halt && !menu && player1->game) {
-			ClearBackground(field->colorBackground);
+		else if (state == GAME_OVER && player1->matchScore >= totalMatches) {
 			DrawText("Player 1 WINS", SCREENWIDTH/3 - 200, SCREENHEIGHT/2, 30, player1->color);
 			DrawText("Press ENTER for REMATCH   Press ESC to EXIT", SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
 			DrawText("Press M to go MAIN MENU", SCREENWIDTH/2 - 305, 6*SCREENHEIGHT/7, 20, WHITE);
 		}//Draw victory player 2
-		else if (halt && !menu && player2->game) {
-			ClearBackground(field->colorBackground);
+		else if (state == GAME_OVER) {
 			DrawText("Press ENTER for REMATCH   Press ESC to EXIT", SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
 			DrawText("Player 2 WINS", SCREENWIDTH/2 + 100, SCREENHEIGHT/2, 30, player2->color);
 			DrawText("Press M to go MAIN MENU", SCREENWIDTH/2 - 305, 6*SCREENHEIGHT/7, 20, WHITE);
