@@ -14,6 +14,10 @@ int main(void) {
 	//Ball``
 	Ball ball = createBall(ballColor, RATIO, ballSpeed, ballPosition);
 
+	//Computer opponent, it plays player 2 in one player mode
+	Computer computer = createComputer();
+	int onePlayer = 1;
+
 	// Set our game to run at 60 frames-per-second
 	SetTargetFPS(60);
 
@@ -27,7 +31,13 @@ int main(void) {
 		// Update
 		switch (state) {
 		case MENU:
-			if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_M)) state = PLAYING;
+			if (IsKeyPressed(KEY_ONE)) {
+				onePlayer = 1;
+				state = PLAYING;
+			} else if (IsKeyPressed(KEY_TWO) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_M)) {
+				onePlayer = 0;
+				state = PLAYING;
+			}
 			break;
 		case PLAYING:
 			if (IsKeyPressed(KEY_SPACE)) {
@@ -35,12 +45,13 @@ int main(void) {
 				break;
 			}
 
-			// Movement player 1
-			if (IsKeyDown(KEY_W)) player1->bar.y -= 15.0f;
-			else if (IsKeyDown(KEY_S)) player1->bar.y += 15.0f;
+			// Movement player 1, alone against the computer the arrows work too
+			if (IsKeyDown(KEY_W) || (onePlayer && IsKeyDown(KEY_UP))) player1->bar.y -= 15.0f;
+			else if (IsKeyDown(KEY_S) || (onePlayer && IsKeyDown(KEY_DOWN))) player1->bar.y += 15.0f;
 
 			// Movement player 2
-			if (IsKeyDown(KEY_UP)) player2->bar.y -= 15.0f;
+			if (onePlayer) computerUpdate(computer, player2, player1, ball);
+			else if (IsKeyDown(KEY_UP)) player2->bar.y -= 15.0f;
 			else if (IsKeyDown(KEY_DOWN)) player2->bar.y += 15.0f;
 
 			// Check when scores and reset the match
@@ -82,9 +93,10 @@ int main(void) {
 
 			//Draw players Scores 
 			DrawText(TextFormat("Score Player 1: %i", player1->score), SCREENWIDTH/30, 25, 20, player1->color);
-			DrawText(TextFormat("Score Player 2: %i", player2->score), 3*SCREENWIDTH/4, 25, 20, player2->color);
+			DrawText(TextFormat("Score %s: %i", onePlayer ? "Computer" : "Player 2", player2->score), 3*SCREENWIDTH/4, 25, 20, player2->color);
 			DrawText(TextFormat("Matches: %i / %i", player1->matchScore, totalMatches), SCREENWIDTH/30, 50, 20, player1->color);
 			DrawText(TextFormat("Matches: %i / %i", player2->matchScore, totalMatches), 3*SCREENWIDTH/4, 50, 20, player2->color);
+			if (onePlayer) DrawText(TextFormat("Level: %i / %i", computer->level, MAXLEVEL), 3*SCREENWIDTH/4, 75, 20, player2->color);
 
 			// On pause, we draw a blinking message
 			if (state == PAUSED && ((framesCounter/30)%2)) DrawText("PAUSED", SCREENWIDTH/2 - 70, SCREENHEIGHT/3, 30, GRAY);
@@ -98,7 +110,7 @@ int main(void) {
 			DrawText("Pong ", SCREENWIDTH/2 - 210, SCREENHEIGHT/3, 180, RED);
 			DrawText("Pong ", SCREENWIDTH/2 - 213, SCREENHEIGHT/3, 178, BLUE);
 			DrawText("titoreboot inc.", SCREENWIDTH/2 - 25, 3*SCREENHEIGHT/4, 10, WHITE);
-			DrawText("press ENTER or M to START.", SCREENWIDTH/2 - 100, 5*SCREENHEIGHT/6, 15, WHITE);
+			DrawText("press 1 for ONE PLAYER, 2 or ENTER for TWO PLAYERS.", SCREENWIDTH/2 - 190, 5*SCREENHEIGHT/6, 15, WHITE);
 			DrawText("press SPACE to PAUSE.", SCREENWIDTH/2 - 77, 7*SCREENHEIGHT/8, 15, WHITE);
 		}//Draw victory player 1
 		else if (state == GAME_OVER && player1->matchScore >= totalMatches) {
@@ -108,7 +120,7 @@ int main(void) {
 		}//Draw victory player 2
 		else if (state == GAME_OVER) {
 			DrawText("Press ENTER for REMATCH   Press ESC to EXIT", SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
-			DrawText("Player 2 WINS", SCREENWIDTH/2 + 100, SCREENHEIGHT/2, 30, player2->color);
+			DrawText(onePlayer ? "Computer WINS" : "Player 2 WINS", SCREENWIDTH/2 + 100, SCREENHEIGHT/2, 30, player2->color);
 			DrawText("Press M to go MAIN MENU", SCREENWIDTH/2 - 305, 6*SCREENHEIGHT/7, 20, WHITE);
 		}
 
@@ -118,6 +130,7 @@ int main(void) {
 		EndDrawing();
 	}
 
+	free(computer);
 	CloseWindow();
 	return 0;
 }
