@@ -141,6 +141,25 @@ MenuOption menuSelect(MenuOption option, int delta) {
 	return (MenuOption)(next < 0 ? next + MENU_OPTIONS : next);
 }
 
+// Screen area of each touch control: the left third of the field is split into
+// an up and a down half for player 1, and a small pause button sits top center
+Rectangle touchControlRect(TouchControl control) {
+	switch (control) {
+	case TOUCH_UP: return (Rectangle){ 0, 0, SCREENWIDTH/3, SCREENHEIGHT/2 };
+	case TOUCH_DOWN: return (Rectangle){ 0, SCREENHEIGHT/2, SCREENWIDTH/3, SCREENHEIGHT/2 };
+	case TOUCH_PAUSE: return (Rectangle){ SCREENWIDTH/2 - 35, 0, 70, 60 };
+	default: return (Rectangle){ 0, 0, 0, 0 };
+	}
+}
+
+// Which touch control a point on the screen presses, if any
+TouchControl touchControlAt(Vector2 point) {
+	const TouchControl controls[] = { TOUCH_PAUSE, TOUCH_UP, TOUCH_DOWN };
+	for (int i = 0; i < 3; i++)
+		if (CheckCollisionPointRec(point, touchControlRect(controls[i]))) return controls[i];
+	return TOUCH_NONE;
+}
+
 // Movement of the ball
 void ballMovement(Ball ball) {
 	ball->position.x += ball->speed.x;

@@ -27,6 +27,32 @@ static Rectangle menuOptionRect(int option) {
 static GameState state = MENU;
 static int framesCounter = 0;
 
+// Touch input: controls are drawn only once the player has touched the screen
+static int touchSeen = 0;
+static int lastTouchCount = 0;
+
+// Draw the touch controls for player 1, brighter while pressed
+static void drawTouchControls(int upHeld, int downHeld, int paused) {
+	Rectangle up = touchControlRect(TOUCH_UP);
+	Rectangle down = touchControlRect(TOUCH_DOWN);
+	Rectangle pause = touchControlRect(TOUCH_PAUSE);
+	float cx = up.x + up.width/2;
+	float cy = up.y + up.height/2;
+	DrawTriangle((Vector2){ cx, cy - 35 }, (Vector2){ cx - 40, cy + 25 }, (Vector2){ cx + 40, cy + 25 }, Fade(WHITE, upHeld ? 0.45f : 0.15f));
+	cy = down.y + down.height/2;
+	DrawTriangle((Vector2){ cx - 40, cy - 25 }, (Vector2){ cx, cy + 35 }, (Vector2){ cx + 40, cy - 25 }, Fade(WHITE, downHeld ? 0.45f : 0.15f));
+	DrawRectangleRec(pause, BLACK);
+	DrawRectangleLinesEx(pause, 2, Fade(WHITE, 0.3f));
+	if (paused) {
+		float px = pause.x + pause.width/2;
+		float py = pause.y + pause.height/2;
+		DrawTriangle((Vector2){ px - 10, py - 15 }, (Vector2){ px - 10, py + 15 }, (Vector2){ px + 15, py }, Fade(WHITE, 0.6f));
+	} else {
+		DrawRectangle(pause.x + 24, pause.y + 15, 8, 30, Fade(WHITE, 0.6f));
+		DrawRectangle(pause.x + 38, pause.y + 15, 8, 30, Fade(WHITE, 0.6f));
+	}
+}
+
 // Update and draw one frame
 static void UpdateDrawFrame(void);
 
@@ -68,6 +94,21 @@ int main(void) {
 static void UpdateDrawFrame(void) {
 	framesCounter++;
 
+	// Touches held this frame, and a tap when a new finger lands (raylib gives
+	// touch positions in game coordinates, even when the page scales the canvas)
+	int touchCount = GetTouchPointCount();
+	int tapped = touchCount > lastTouchCount;
+	Vector2 tap = tapped ? GetTouchPosition(touchCount - 1) : (Vector2){ -1, -1 };
+	lastTouchCount = touchCount;
+	if (touchCount > 0) touchSeen = 1;
+	int touchUp = 0, touchDown = 0;
+	for (int i = 0; i < touchCount; i++) {
+		TouchControl control = touchControlAt(GetTouchPosition(i));
+		if (control == TOUCH_UP) touchUp = 1;
+		else if (control == TOUCH_DOWN) touchDown = 1;
+	}
+	int tapPause = tapped && touchControlAt(tap) == TOUCH_PAUSE;
+
 	// Update
 	switch (state) {
 	case MENU:
@@ -85,6 +126,11 @@ static void UpdateDrawFrame(void) {
 				start = 1;
 			}
 			for (int option = 0; option < MENU_OPTIONS; option++) {
+				// Phones: tapping an option starts it (taps never become mouse clicks)
+				if (tapped && CheckCollisionPointRec(tap, menuOptionRect(option))) {
+					menuOption = (MenuOption)option;
+					start = 1;
+				}
 				if (!CheckCollisionPointRec(GetMousePosition(), menuOptionRect(option))) continue;
 				if (GetMouseDelta().x != 0 || GetMouseDelta().y != 0) menuOption = (MenuOption)option;
 				if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -99,14 +145,14 @@ static void UpdateDrawFrame(void) {
 		}
 		break;
 	case PLAYING:
-		if (IsKeyPressed(KEY_SPACE)) {
+		if (IsKeyPressed(KEY_SPACE) || tapPause) {
 			state = PAUSED;
 			break;
 		}
 
-		// Movement player 1, alone against the computer the arrows work too
-		if (IsKeyDown(KEY_W) || (onePlayer && IsKeyDown(KEY_UP))) player1->bar.y -= 15.0f;
-		else if (IsKeyDown(KEY_S) || (onePlayer && IsKeyDown(KEY_DOWN))) player1->bar.y += 15.0f;
+		// Movement player 1, alone against the computer the arrows and the touch controls work too
+		if (IsKeyDown(KEY_W) || (onePlayer && (IsKeyDown(KEY_UP) || touchUp))) player1->bar.y -= 15.0f;
+		else if (IsKeyDown(KEY_S) || (onePlayer && (IsKeyDown(KEY_DOWN) || touchDown))) player1->bar.y += 15.0f;
 
 		// Movement player 2
 		if (onePlayer) computerUpdate(computer, player2, player1, ball);
@@ -117,20 +163,20 @@ static void UpdateDrawFrame(void) {
 		state = referee(player1, player2, ball, field, maxScore, totalMatches);
 		break;
 	case PAUSED:
-		if (IsKeyPressed(KEY_SPACE)) state = PLAYING;
+		if (IsKeyPressed(KEY_SPACE) || tapped) state = PLAYING;
 		else if (IsKeyPressed(KEY_M)) {
 			resetGame(player1, player2);
 			state = MENU;
 		}
 		break;
 	case MATCH_OVER:
-		if (IsKeyPressed(KEY_SPACE)) state = PLAYING;
+		if (IsKeyPressed(KEY_SPACE) || tapped) state = PLAYING;
 		break;
 	case GAME_OVER:
 		if (IsKeyPressed(KEY_ENTER)) {
 			resetGame(player1, player2);
 			state = PLAYING;
-		} else if (IsKeyPressed(KEY_M)) {
+		} else if (IsKeyPressed(KEY_M) || tapped) {
 			resetGame(player1, player2);
 			state = MENU;
 		}
@@ -157,11 +203,16 @@ static void UpdateDrawFrame(void) {
 		DrawText(TextFormat("Matches: %i / %i", player2->matchScore, totalMatches), 3*SCREENWIDTH/4, 50, 20, player2->color);
 		if (onePlayer) DrawText(TextFormat("Level: %i / %i", computer->level, MAXLEVEL), 3*SCREENWIDTH/4, 75, 20, player2->color);
 
+		// Touch controls, only for a one player game on a touch screen
+		if (touchSeen && onePlayer) drawTouchControls(touchUp, touchDown, state != PLAYING);
+
 		// On pause, we draw a blinking message
 		if (state == PAUSED && ((framesCounter/30)%2)) DrawText("PAUSED", SCREENWIDTH/2 - 70, SCREENHEIGHT/3, 30, GRAY);
+		if (state == PAUSED && touchSeen) DrawText("Tap to CONTINUE.", SCREENWIDTH/2 - MeasureText("Tap to CONTINUE.", 20)/2, SCREENHEIGHT/3 + 45, 20, GRAY);
 
 		// Between matches, we draw a blinking message to continue
-		if (state == MATCH_OVER && ((framesCounter/30)%2)) DrawText("Press SPACE to CONTINUE.", SCREENWIDTH/2 - 260, SCREENHEIGHT/2, 30, GREEN);
+		const char *next = touchSeen ? "Tap to CONTINUE." : "Press SPACE to CONTINUE.";
+		if (state == MATCH_OVER && ((framesCounter/30)%2)) DrawText(next, SCREENWIDTH/2 - MeasureText(next, 30)/2, SCREENHEIGHT/2, 30, GREEN);
 	}
 
 	//Draw the front menu
@@ -175,17 +226,19 @@ static void UpdateDrawFrame(void) {
 			const char *label = selected ? TextFormat("> %s <", menuLabels[option]) : menuLabels[option];
 			DrawText(label, area.x + area.width/2 - MeasureText(label, 20)/2, area.y + 3, 20, selected ? YELLOW : GRAY);
 		}
-		const char *hint = "UP/DOWN to choose, ENTER to start, SPACE to PAUSE in game.";
+		const char *hint = touchSeen ? "TAP an option to start." : "UP/DOWN to choose, ENTER to start, SPACE to PAUSE in game.";
 		DrawText(hint, SCREENWIDTH/2 - MeasureText(hint, 15)/2, 422, 15, WHITE);
 	}//Draw victory player 1
 	else if (state == GAME_OVER && player1->matchScore >= totalMatches) {
 		DrawText("Player 1 WINS", SCREENWIDTH/3 - 200, SCREENHEIGHT/2, 30, player1->color);
-		DrawText(REMATCH_HINT, SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
-		DrawText("Press M to go MAIN MENU", SCREENWIDTH/2 - 305, 6*SCREENHEIGHT/7, 20, WHITE);
 	}//Draw victory player 2
 	else if (state == GAME_OVER) {
-		DrawText(REMATCH_HINT, SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
 		DrawText(onePlayer ? "Computer WINS" : "Player 2 WINS", SCREENWIDTH/2 + 100, SCREENHEIGHT/2, 30, player2->color);
+	}
+	if (state == GAME_OVER && touchSeen) {
+		DrawText("Tap to go MAIN MENU", SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
+	} else if (state == GAME_OVER) {
+		DrawText(REMATCH_HINT, SCREENWIDTH/2 - 305, 3*SCREENHEIGHT/4, 20, WHITE);
 		DrawText("Press M to go MAIN MENU", SCREENWIDTH/2 - 305, 6*SCREENHEIGHT/7, 20, WHITE);
 	}
 

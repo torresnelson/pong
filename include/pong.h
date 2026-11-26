@@ -78,6 +78,9 @@
 	//Main menu options, in the order they are drawn
 	typedef enum { MENU_ONE_PLAYER, MENU_TWO_PLAYERS, MENU_OPTIONS } MenuOption;
 
+	//On-screen touch controls for player 1 (phones and tablets)
+	typedef enum { TOUCH_NONE, TOUCH_UP, TOUCH_DOWN, TOUCH_PAUSE } TouchControl;
+
 	//Functions
 	Player createPlayer(Color color, int height, int width, Rectangle bar);
 	Ball createBall(Color color, int ratio, Vector2 speed, Vector2 position);
@@ -92,6 +95,8 @@
 	Vector2 clampSpeed(Vector2 speed, Vector2 max);
 	void paddleBounce(Ball ball);
 	MenuOption menuSelect(MenuOption option, int delta);
+	Rectangle touchControlRect(TouchControl control);
+	TouchControl touchControlAt(Vector2 point);
 
 	//Computer opponent functions
 	Computer createComputer(void);

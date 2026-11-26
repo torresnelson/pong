@@ -53,6 +53,12 @@ The key bindings:
 
     - Exit: (Esc)
 
+On a phone or tablet (browser version), hold the device sideways and tap an
+option in the menu. Against the computer, the left third of the screen is
+the controller: hold its top half to move up and its bottom half to move
+down. The button at the top center pauses; tap anywhere to continue, and
+tap after a win to go back to the menu.
+
 ### Tests
 
 Run the game logic unit tests (no window needed):
