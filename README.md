@@ -1,6 +1,8 @@
 # pong
 Clone of the classic game using raylib.
 
+Play it in the browser: https://torresnelson.github.io/pong/
+
 
 ### How to compile?
 
@@ -55,3 +57,17 @@ The key bindings:
 Run the game logic unit tests (no window needed):
 
     make test
+
+### Web version
+
+The same C code also builds for the browser with Emscripten. `make web`
+downloads raylib (version `RAYLIB_VERSION`, 6.2 by default), compiles it for
+the web and writes the page to `build/web/` (`index.html`, `index.js`,
+`index.wasm`). With Nix:
+
+    nix-shell -p emscripten gnumake git --run 'make web'
+    make serve-web    # then open http://localhost:8000
+
+Every push to `master` runs the tests, builds the web version and publishes
+it to GitHub Pages (`.github/workflows/pages.yml`). In the browser Esc does
+not close the page.
