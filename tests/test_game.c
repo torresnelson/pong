@@ -104,12 +104,99 @@ static void testFloorBounceStaysInField(void) {
 	free(ball);
 }
 
+static void testPredictBallY(void) {
+	// Straight shot lands where it is
+	CHECK(predictBallY((Vector2){ 100, 200 }, (Vector2){ 5, 0 }, 700, RATIO) == 200);
+	// Ball moving away keeps its current height
+	CHECK(predictBallY((Vector2){ 100, 200 }, (Vector2){ -5, 3 }, 700, RATIO) == 200);
+	// Bounces once off the floor: 200 + 300 = 500 is 60 past the floor (440)
+	CHECK(fabsf(predictBallY((Vector2){ 400, 200 }, (Vector2){ 4, 4 }, 700, RATIO) - 380) < 0.01f);
+	// Bounces once off the roof
+	CHECK(fabsf(predictBallY((Vector2){ 400, 100 }, (Vector2){ 4, -4 }, 700, RATIO) - 220) < 0.01f);
+}
+
+static void testStepToward(void) {
+	CHECK(stepToward(100, 105, 10) == 105);
+	CHECK(stepToward(100, 300, 10) == 110);
+	CHECK(stepToward(100, 0, 10) == 90);
+}
+
+static void testComputerLevelGrows(void) {
+	Player p1 = createPlayer(WHITE, PLAYERHEIGHT, PLAYERWIDTH, rectangleLeft);
+	Player p2 = createPlayer(BLUE, PLAYERHEIGHT, PLAYERWIDTH, rectangleRight);
+	CHECK(computerLevel(p1, p2) == 1);
+	p1->score = 2;
+	p2->score = 2;
+	CHECK(computerLevel(p1, p2) == 2);
+	p1->matchScore = 1;
+	CHECK(computerLevel(p1, p2) == 4);
+	p2->matchScore = 10;
+	CHECK(computerLevel(p1, p2) == MAXLEVEL);
+	free(p1);
+	free(p2);
+}
+
+static void testComputerGetsHarder(void) {
+	for (int level = 2; level <= MAXLEVEL; level++) {
+		CHECK(computerSpeed(level) > computerSpeed(level - 1));
+		CHECK(computerReactionX(level) < computerReactionX(level - 1));
+		CHECK(computerAimError(level) < computerAimError(level - 1));
+	}
+	// Never faster than a human paddle, and perfect aim only at the top
+	CHECK(computerSpeed(MAXLEVEL) < 15.0f);
+	CHECK(computerAimError(MAXLEVEL) == 0);
+}
+
+// Serve towards the computer and report whether it sends the ball back
+static int computerReturns(int level, Vector2 speed, float startY) {
+	Field field = newField();
+	Player p1 = createPlayer(WHITE, PLAYERHEIGHT, PLAYERWIDTH, rectangleLeft);
+	Player p2 = createPlayer(BLUE, PLAYERHEIGHT, PLAYERWIDTH, rectangleRight);
+	p1->score = 4*(level - 1);
+	Computer computer = createComputer();
+	Ball ball = createBall(RED, RATIO, speed, (Vector2){ SCREENWIDTH/2, startY });
+	int returned = 0;
+	while (!returned && ball->position.x < SCREENWIDTH + 2*RATIO) {
+		computerUpdate(computer, p2, p1, ball);
+		collisions(p1, p2, ball, field);
+		ballMovement(ball);
+		returned = ball->speed.x < 0;
+	}
+	CHECK(computer->level == level);
+	free(field);
+	free(p1);
+	free(p2);
+	free(computer);
+	free(ball);
+	return returned;
+}
+
+static void testTopLevelReturnsEveryServe(void) {
+	for (float sx = 4; sx <= maxSpeed.x; sx += 1.5f)
+		for (float sy = -maxSpeed.y; sy <= maxSpeed.y; sy += 2)
+			for (float y = 50; y < SCREENHEIGHT; y += 100)
+				CHECK(computerReturns(MAXLEVEL, (Vector2){ sx, sy }, y));
+}
+
+static void testFirstLevelMissesSometimes(void) {
+	int misses = 0;
+	for (float sy = -maxSpeed.y; sy <= maxSpeed.y; sy += 2)
+		misses += !computerReturns(1, (Vector2){ maxSpeed.x, sy }, 50);
+	CHECK(misses > 0);
+}
+
 int main(void) {
 	testClampSpeed();
 	testScoreManager();
 	testPaddleBouncesOnce();
 	testBallBehindPaddleIsNotSaved();
 	testFloorBounceStaysInField();
+	testPredictBallY();
+	testStepToward();
+	testComputerLevelGrows();
+	testComputerGetsHarder();
+	testTopLevelReturnsEveryServe();
+	testFirstLevelMissesSometimes();
 	printf(failures ? "%d check(s) failed\n" : "all tests passed\n", failures);
 	return failures != 0;
 }

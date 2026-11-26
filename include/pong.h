@@ -27,6 +27,15 @@
 		Vector2 speed;
 		Vector2 position;
 	} * Ball;
+	//Computer opponent
+	#define MAXLEVEL 10
+	#define PREDICTLEVEL 4
+	typedef struct sComputer {
+		int level;
+		float aimOffset;
+		int tracking;
+	} * Computer;
+
 	//Field
 	typedef struct sField { 
 		Color colorBackground;
@@ -79,5 +88,15 @@
 	void ballMovement(Ball ball);
 	Vector2 clampSpeed(Vector2 speed, Vector2 max);
 	void paddleBounce(Ball ball);
+
+	//Computer opponent functions
+	Computer createComputer(void);
+	int computerLevel(Player human, Player cpu);
+	float computerSpeed(int level);
+	float computerReactionX(int level);
+	int computerAimError(int level);
+	float predictBallY(Vector2 position, Vector2 speed, float targetX, float radius);
+	float stepToward(float from, float to, float maxStep);
+	void computerUpdate(Computer c, Player cpu, Player human, Ball ball);
 
 #endif

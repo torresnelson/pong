@@ -8,7 +8,7 @@ LDLIBS += $(RAYLIB_LIBS) -lm
 
 GAME = build/pong
 TEST = build/test_game
-GAME_SRC = src/main.c src/game.c
+GAME_SRC = src/main.c src/game.c src/computer.c
 HEADERS = include/pong.h
 
 # Web build: Emscripten (emcc) plus raylib compiled for the web.
@@ -39,8 +39,8 @@ run: $(GAME)
 $(GAME): $(GAME_SRC) $(HEADERS) | build
 	$(CC) $(CFLAGS) $(RAYLIB_CFLAGS) -o $@ $(GAME_SRC) $(LDFLAGS) $(LDLIBS)
 
-$(TEST): tests/test_game.c src/game.c $(HEADERS) | build
-	$(CC) $(CFLAGS) $(RAYLIB_CFLAGS) -o $@ tests/test_game.c src/game.c $(LDFLAGS) $(LDLIBS)
+$(TEST): tests/test_game.c src/game.c src/computer.c $(HEADERS) | build
+	$(CC) $(CFLAGS) $(RAYLIB_CFLAGS) -o $@ tests/test_game.c src/game.c src/computer.c $(LDFLAGS) $(LDLIBS)
 
 build:
 	mkdir -p build
