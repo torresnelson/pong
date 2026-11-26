@@ -193,6 +193,20 @@ static void testMenuSelectWraps(void) {
 	CHECK(menuSelect(MENU_ONE_PLAYER, 0) == MENU_ONE_PLAYER);
 }
 
+static void testTouchControls(void) {
+	CHECK(touchControlAt((Vector2){ 50, 50 }) == TOUCH_UP);
+	CHECK(touchControlAt((Vector2){ 50, SCREENHEIGHT - 10 }) == TOUCH_DOWN);
+	CHECK(touchControlAt((Vector2){ SCREENWIDTH/3 - 1, SCREENHEIGHT/2 - 1 }) == TOUCH_UP);
+	CHECK(touchControlAt((Vector2){ SCREENWIDTH/3 - 1, SCREENHEIGHT/2 + 1 }) == TOUCH_DOWN);
+	CHECK(touchControlAt((Vector2){ SCREENWIDTH/2, 20 }) == TOUCH_PAUSE);
+	// The rest of the field, where the ball and the computer play, is not a control
+	CHECK(touchControlAt((Vector2){ SCREENWIDTH/2, SCREENHEIGHT/2 }) == TOUCH_NONE);
+	CHECK(touchControlAt((Vector2){ SCREENWIDTH - 20, 20 }) == TOUCH_NONE);
+	CHECK(touchControlAt((Vector2){ -1, -1 }) == TOUCH_NONE);
+	// Controls must not overlap
+	CHECK(!CheckCollisionRecs(touchControlRect(TOUCH_PAUSE), touchControlRect(TOUCH_UP)));
+}
+
 int main(void) {
 	testClampSpeed();
 	testScoreManager();
@@ -206,6 +220,7 @@ int main(void) {
 	testTopLevelReturnsEveryServe();
 	testFirstLevelMissesSometimes();
 	testMenuSelectWraps();
+	testTouchControls();
 	printf(failures ? "%d check(s) failed\n" : "all tests passed\n", failures);
 	return failures != 0;
 }
