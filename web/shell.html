@@ -20,6 +20,9 @@
     canvas: document.getElementById('canvas'),
     print: console.log,
     printErr: console.error,
+    // Load index.wasm from the same build as this page; `make web` fills in the
+    // version so a browser cache cannot pair a new page with an old game.
+    locateFile: function (path, prefix) { return prefix + path + '?v=@WEB_VERSION@'; },
   };
   // Keep the game keys from scrolling the page.
   window.addEventListener('keydown', function (event) {
