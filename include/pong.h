@@ -75,6 +75,9 @@
 	//States
 	typedef enum { MENU, PLAYING, PAUSED, MATCH_OVER, GAME_OVER } GameState;
 
+	//Main menu options, in the order they are drawn
+	typedef enum { MENU_ONE_PLAYER, MENU_TWO_PLAYERS, MENU_OPTIONS } MenuOption;
+
 	//Functions
 	Player createPlayer(Color color, int height, int width, Rectangle bar);
 	Ball createBall(Color color, int ratio, Vector2 speed, Vector2 position);
@@ -88,6 +91,7 @@
 	void ballMovement(Ball ball);
 	Vector2 clampSpeed(Vector2 speed, Vector2 max);
 	void paddleBounce(Ball ball);
+	MenuOption menuSelect(MenuOption option, int delta);
 
 	//Computer opponent functions
 	Computer createComputer(void);

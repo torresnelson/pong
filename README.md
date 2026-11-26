@@ -29,8 +29,9 @@ or run the binary directly:
 
     ./build/pong
 
-In the menu, press 1 to play alone against the computer or 2 (also Enter
-or m) to play two players. The computer starts easy and levels up a little
+In the menu, choose ONE PLAYER (against the computer) or TWO PLAYERS with
+the up/down arrows or w/s and press Enter, or click an option. 1 and 2
+start that option directly. The computer starts easy and levels up a little
 every few points and after every match, up to level 10. Its level is shown
 under its score.
 
@@ -40,9 +41,9 @@ The key bindings:
 
     - Player two: (up and down arrows)
 
-    - One player game: (1)
+    - Menu: choose with (up/down or w/s), start with (Enter or m), or click
 
-    - Two players game: (2, Enter or m)
+    - Menu shortcuts: (1) one player, (2) two players
 
     - Pause / continue: (Space)
 

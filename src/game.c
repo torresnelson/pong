@@ -135,6 +135,12 @@ void paddleBounce(Ball ball) {
 	ball->speed = clampSpeed(ball->speed, maxSpeed);
 }
 
+// Move the main menu cursor by delta entries, wrapping around at both ends
+MenuOption menuSelect(MenuOption option, int delta) {
+	int next = ((int)option + delta) % MENU_OPTIONS;
+	return (MenuOption)(next < 0 ? next + MENU_OPTIONS : next);
+}
+
 // Movement of the ball
 void ballMovement(Ball ball) {
 	ball->position.x += ball->speed.x;

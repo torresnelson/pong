@@ -17,6 +17,13 @@ static Ball ball;
 // Computer opponent, it plays player 2 in one player mode
 static Computer computer;
 static int onePlayer = 1;
+static MenuOption menuOption = MENU_ONE_PLAYER;
+
+// Main menu labels and where each option is drawn (also its mouse click area)
+static const char *menuLabels[MENU_OPTIONS] = { "ONE PLAYER", "TWO PLAYERS" };
+static Rectangle menuOptionRect(int option) {
+	return (Rectangle){ SCREENWIDTH/2 - 110, 355 + option*30, 220, 26 };
+}
 static GameState state = MENU;
 static int framesCounter = 0;
 
@@ -64,12 +71,31 @@ static void UpdateDrawFrame(void) {
 	// Update
 	switch (state) {
 	case MENU:
-		if (IsKeyPressed(KEY_ONE)) {
-			onePlayer = 1;
-			state = PLAYING;
-		} else if (IsKeyPressed(KEY_TWO) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_M)) {
-			onePlayer = 0;
-			state = PLAYING;
+		{
+			// Choose with the arrows, W/S or the mouse; start with Enter, M or a click.
+			// 1 and 2 (also on the numpad) start that option right away.
+			int start = IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER) || IsKeyPressed(KEY_M);
+			if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) menuOption = menuSelect(menuOption, -1);
+			if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) menuOption = menuSelect(menuOption, 1);
+			if (IsKeyPressed(KEY_ONE) || IsKeyPressed(KEY_KP_1)) {
+				menuOption = MENU_ONE_PLAYER;
+				start = 1;
+			} else if (IsKeyPressed(KEY_TWO) || IsKeyPressed(KEY_KP_2)) {
+				menuOption = MENU_TWO_PLAYERS;
+				start = 1;
+			}
+			for (int option = 0; option < MENU_OPTIONS; option++) {
+				if (!CheckCollisionPointRec(GetMousePosition(), menuOptionRect(option))) continue;
+				if (GetMouseDelta().x != 0 || GetMouseDelta().y != 0) menuOption = (MenuOption)option;
+				if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+					menuOption = (MenuOption)option;
+					start = 1;
+				}
+			}
+			if (start) {
+				onePlayer = menuOption == MENU_ONE_PLAYER;
+				state = PLAYING;
+			}
 		}
 		break;
 	case PLAYING:
@@ -143,8 +169,14 @@ static void UpdateDrawFrame(void) {
 		DrawText("Pong ", SCREENWIDTH/2 - 210, SCREENHEIGHT/3, 180, RED);
 		DrawText("Pong ", SCREENWIDTH/2 - 213, SCREENHEIGHT/3, 178, BLUE);
 		DrawText("titoreboot inc.", SCREENWIDTH/2 - 25, 3*SCREENHEIGHT/4, 10, WHITE);
-		DrawText("press 1 for ONE PLAYER, 2 or ENTER for TWO PLAYERS.", SCREENWIDTH/2 - 190, 5*SCREENHEIGHT/6, 15, WHITE);
-		DrawText("press SPACE to PAUSE.", SCREENWIDTH/2 - 77, 7*SCREENHEIGHT/8, 15, WHITE);
+		for (int option = 0; option < MENU_OPTIONS; option++) {
+			Rectangle area = menuOptionRect(option);
+			int selected = option == (int)menuOption;
+			const char *label = selected ? TextFormat("> %s <", menuLabels[option]) : menuLabels[option];
+			DrawText(label, area.x + area.width/2 - MeasureText(label, 20)/2, area.y + 3, 20, selected ? YELLOW : GRAY);
+		}
+		const char *hint = "UP/DOWN to choose, ENTER to start, SPACE to PAUSE in game.";
+		DrawText(hint, SCREENWIDTH/2 - MeasureText(hint, 15)/2, 422, 15, WHITE);
 	}//Draw victory player 1
 	else if (state == GAME_OVER && player1->matchScore >= totalMatches) {
 		DrawText("Player 1 WINS", SCREENWIDTH/3 - 200, SCREENHEIGHT/2, 30, player1->color);

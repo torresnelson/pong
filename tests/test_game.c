@@ -185,6 +185,14 @@ static void testFirstLevelMissesSometimes(void) {
 	CHECK(misses > 0);
 }
 
+static void testMenuSelectWraps(void) {
+	CHECK(menuSelect(MENU_ONE_PLAYER, 1) == MENU_TWO_PLAYERS);
+	CHECK(menuSelect(MENU_TWO_PLAYERS, 1) == MENU_ONE_PLAYER);
+	CHECK(menuSelect(MENU_ONE_PLAYER, -1) == MENU_TWO_PLAYERS);
+	CHECK(menuSelect(MENU_TWO_PLAYERS, -1) == MENU_ONE_PLAYER);
+	CHECK(menuSelect(MENU_ONE_PLAYER, 0) == MENU_ONE_PLAYER);
+}
+
 int main(void) {
 	testClampSpeed();
 	testScoreManager();
@@ -197,6 +205,7 @@ int main(void) {
 	testComputerGetsHarder();
 	testTopLevelReturnsEveryServe();
 	testFirstLevelMissesSometimes();
+	testMenuSelectWraps();
 	printf(failures ? "%d check(s) failed\n" : "all tests passed\n", failures);
 	return failures != 0;
 }
