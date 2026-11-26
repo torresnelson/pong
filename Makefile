@@ -21,6 +21,9 @@ RAYLIB_WEB = $(RAYLIB_WEB_DIR)/libraylib.web.a
 WEB_DIR = build/web
 WEB_CFLAGS = -Os -Wall -std=gnu99 -D_DEFAULT_SOURCE -DPLATFORM_WEB -Iinclude -I$(RAYLIB_SRC)/src
 WEB_LDFLAGS = -sUSE_GLFW=3 -sGL_ENABLE_GET_PROC_ADDRESS --shell-file web/shell.html
+# Stamped on index.js and index.wasm so browsers never mix files from two
+# deploys (GitHub Pages lets them cache every file for 10 minutes)
+WEB_VERSION ?= $(shell git rev-parse --short HEAD 2>/dev/null || date +%s)
 # A writable Emscripten cache (the Nix-provided one is read-only)
 export EM_CACHE ?= $(abspath build/emcache)
 
@@ -60,6 +63,9 @@ $(RAYLIB_WEB): | $(RAYLIB_SRC)
 $(WEB_DIR)/index.html: $(GAME_SRC) $(HEADERS) web/shell.html $(RAYLIB_WEB)
 	mkdir -p $(WEB_DIR)
 	$(EMCC) $(WEB_CFLAGS) -o $@ $(GAME_SRC) $(RAYLIB_WEB) $(WEB_LDFLAGS)
+	sed -i -e 's|src="index.js"|src="index.js?v=$(WEB_VERSION)"|' -e 's|@WEB_VERSION@|$(WEB_VERSION)|' $@
+	grep -q 'index.js?v=$(WEB_VERSION)"' $@ && ! grep -q '@WEB_VERSION@' $@ \
+		|| { echo 'web: could not stamp the version on index.html' >&2; rm -f $@; exit 1; }
 
 clean:
 	rm -rf build
